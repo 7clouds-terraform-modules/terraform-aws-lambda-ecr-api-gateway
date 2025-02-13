@@ -102,11 +102,20 @@ resource "aws_iam_role_policy_attachments_exclusive" "lambda_iam_role_policy_att
   ]
 }
 
+data "aws_ecr_repository" "lambda_ecr_repository" {
+  name = var.ECR_REPOSITORY_NAME
+}
+
+data "aws_ecr_image" "lambda_ecr_image" {
+  repository_name = data.aws_ecr_repository.flask_app_serverless.name
+  image_tag       = var.ECR_IMAGE_TAG
+}
+
 resource "aws_lambda_function" "lambda_function" {
   function_name = "${var.PROJECT_NAME}LambdaFunction"
   memory_size   = var.MEMORY_SIZE
   timeout       = var.TIMEOUT
-  image_uri     = var.LAMBDA_CODE_IMAGE_URI
+  image_uri     = "${data.aws_ecr_repository.lambda_ecr_repository.repository_url}@${data.aws_ecr_image.lambda_ecr_image.image_digest}"
   package_type  = var.LAMBDA_CODE_PACKAGE_TYPE
   role          = aws_iam_role.lambda_iam_role.arn
   environment {

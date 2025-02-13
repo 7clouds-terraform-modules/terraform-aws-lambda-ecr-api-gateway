@@ -55,6 +55,16 @@ output "TAGS" {
   value       = var.TAGS
 }
 
+output "ECR_REPOSITORY_NAME" {
+  description = "Name of the ECR Repository"
+  value       = var.ECR_REPOSITORY_NAME
+}
+
+output "ECR_IMAGE_TAG" {
+  description = "Tag associated with this image"
+  value       = var.ECR_IMAGE_TAG
+}
+
 output "API_GATEWAY_INTEGRATION_INPUT_TYPE" {
   description = "Integration input's type. 'AWS_PROXY' was set for Lambda Proxy Integration"
   value       = var.API_GATEWAY_INTEGRATION_INPUT_TYPE

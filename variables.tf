@@ -19,20 +19,18 @@ variable "API_GATEWAY_METHOD_HTTP_METHOD" {
   type        = string
 }
 
-variable "API_GATEWAY_METHOD_ROOT_AUTHORIZATION" {
-  description = "API Gateway Method Authorization"
-  type        = string
-  default     = "NONE"
-}
-
-variable "API_GATEWAY_METHOD_ROOT_HTTP_METHOD" {
-  description = "API Gateway HTTP Method"
-  type        = string
-  default     = "ANY"
-}
-
 variable "ENVIRONMENT" {
   description = "Environment Name"
+  type        = string
+}
+
+variable "ECR_REPOSITORY_NAME" {
+  description = "Name of the ECR Repository"
+  type        = string
+}
+
+variable "ECR_IMAGE_TAG" {
+  description = "Tag associated with this image"
   type        = string
 }
 
@@ -76,6 +74,18 @@ variable "API_GATEWAY_INTEGRATION_ROOT_HTTP_METHOD" {
   default     = "POST"
 }
 
+variable "API_GATEWAY_METHOD_ROOT_AUTHORIZATION" {
+  description = "API Gateway Method Authorization"
+  type        = string
+  default     = "NONE"
+}
+
+variable "API_GATEWAY_METHOD_ROOT_HTTP_METHOD" {
+  description = "API Gateway HTTP Method"
+  type        = string
+  default     = "ANY"
+}
+
 variable "ATTACHED_POLICY_ARNS" {
   description = "Policy ARNs to be added to Lambda Function"
   type        = list(string)
@@ -98,12 +108,6 @@ variable "LAMBDA_CODE_PACKAGE_TYPE" {
   description = "Lambda deployment package type. For this module, we must use the value Image"
   type        = string
   default     = "Image"
-}
-
-variable "LAMBDA_CODE_IMAGE_URI" {
-  description = "ECR image URI containing the function's deployment package"
-  type        = string
-  default     = null
 }
 
 variable "ENVIRONMENT_VARIABLES" {

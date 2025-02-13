@@ -7,6 +7,8 @@ module "lambda_ecr_api_gateway" {
   API_GATEWAY_METHOD_AUTHORIZATION = "NONE"
   API_GATEWAY_METHOD_HTTP_METHOD   = "ANY"
   ENVIRONMENT                      = "DEV"
+  ECR_REPOSITORY_NAME              = "lambda/newmodules-ecr"
+  ECR_IMAGE_TAG                    = "latest"
 
   # Optionals
   AWS_REGION = "us-west-2"
@@ -15,7 +17,6 @@ module "lambda_ecr_api_gateway" {
   }
 
   # Structural
-  LAMBDA_CODE_IMAGE_URI               = "YourECRImageURIHere"
   SECURITY_GROUP_IDS                  = ["YourSecurityGroupsID(s)Here"]
   SUBNET_IDS                          = ["YourSubnetsID(s)Here"]
   WARMUP_ENABLED                      = true

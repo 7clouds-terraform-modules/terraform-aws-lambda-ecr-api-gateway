@@ -107,7 +107,7 @@ data "aws_ecr_repository" "lambda_ecr_repository" {
 }
 
 data "aws_ecr_image" "lambda_ecr_image" {
-  repository_name = data.aws_ecr_repository.flask_app_serverless.name
+  repository_name = data.aws_ecr_repository.lambda_ecr_repository.name
   image_tag       = var.ECR_IMAGE_TAG
 }
 

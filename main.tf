@@ -1,3 +1,14 @@
+locals {
+  policy_arns_list = concat([
+      "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+      "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+      "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+      "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator",
+      "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
+    ], 
+    coalesce(var.ATTACHED_POLICY_ARNS, []))
+}
+
 data "aws_caller_identity" "current_identity" {}
 
 data "aws_region" "default_region" {}
@@ -84,22 +95,10 @@ resource "aws_iam_role" "lambda_iam_role" {
   tags = var.TAGS != null ? "${merge(var.TAGS, { Name = "${var.PROJECT_NAME} Lambda Iam Role" })}" : { Name = "${var.PROJECT_NAME} Lambda Iam Role" }
 }
 
-resource "aws_iam_role_policy_attachments_exclusive" "lambda_iam_role_policy_attachments" {
-  role_name   = aws_iam_role.lambda_iam_role.name
-  policy_arns = var.ATTACHED_POLICY_ARNS != null ? concat(var.ATTACHED_POLICY_ARNS,
-    [
-      "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
-      "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
-      "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-      "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator",
-      "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
-    ]) : [
-    "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator",
-    "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
-  ]
+resource "aws_iam_role_policy_attachment" "lambda_iam_role_policy_attachments" {
+  count       = length(local.policy_arns_list)
+  role       = aws_iam_role.lambda_iam_role.name
+  policy_arn = element(local.policy_arns_list, count.index)
 }
 
 data "aws_ecr_repository" "lambda_ecr_repository" {

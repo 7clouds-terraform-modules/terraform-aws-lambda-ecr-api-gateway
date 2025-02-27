@@ -10,6 +10,10 @@ Please star rate this repo if you like our job!
 
 The module deploys a set of Lambda Function using an ECR image as its code + API Gateway resources with its rightful roles and policies to create a serverless application.
 
+## Changes on Version 0.1.1
+
+- Replaced the [aws_iam_role_policy_attachments_exclusive resource](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachments_exclusive) for the [aws_iam_role_policy_attachment resource](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) due to the former resource's defining features not being essential for our module and the by using the latter resource we fix a problem that happened when destroying all of the modules resources.
+
 ## Example
 
 ```hcl

@@ -139,3 +139,8 @@ output "CLOUDWATCH_LAMBDA_WARMUP_EVENTS_RULE_ARN" {
   description = "API Gateway Stage ARN for references"
   value       = join("", aws_cloudwatch_event_rule.lambda_warm_up_events_rule.*.arn)
 }
+
+output "LAMBDA_CODE_IMAGE_URI" {
+  description = "ECR image URI used by Lambda Function"
+  value       = aws_lambda_function.lambda_function.image_uri
+}

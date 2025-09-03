@@ -7,6 +7,7 @@ locals {
       "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
     ], 
     coalesce(var.ATTACHED_POLICY_ARNS, []))
+    lambda_env = jsondecode(file("${path.module}/env.json"))
 }
 
 data "aws_caller_identity" "current_identity" {}
@@ -61,6 +62,145 @@ resource "aws_api_gateway_integration" "api_gateway_integration_root" {
    type                    = var.API_GATEWAY_INTEGRATION_ROOT_TYPE
    uri                     = "arn:aws:apigateway:${var.AWS_REGION != null ? var.AWS_REGION : data.aws_region.default_region.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${var.AWS_REGION != null ? var.AWS_REGION : data.aws_region.default_region.name}:${data.aws_caller_identity.current_identity.account_id}:function:$${stageVariables.FunctionName}/invocations"
 }
+
+# recurso adicionado para method que lida com CORS no / (root)
+resource "aws_api_gateway_method" "api_gateway_root_options" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id     = aws_api_gateway_rest_api.rest_api.id
+  resource_id     = aws_api_gateway_rest_api.rest_api.root_resource_id
+  http_method     = "OPTIONS"
+  authorization   = "NONE"
+  api_key_required = false
+}
+
+# integration do recurso adicionado para CORS no / (root)
+resource "aws_api_gateway_integration" "api_gateway_root_options" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_rest_api.rest_api.root_resource_id
+  http_method = aws_api_gateway_method.api_gateway_root_options[0].http_method
+  type        = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+# recurso de resposta do recurso adicionado para CORS no / (root)
+resource "aws_api_gateway_method_response" "api_gateway_root_options_200" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_rest_api.rest_api.root_resource_id
+  http_method = aws_api_gateway_method.api_gateway_root_options[0].http_method
+  status_code = "200"
+  response_models = {
+    "application/json" = "Empty"
+  }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+}
+
+# Integração do recurso de resposta
+resource "aws_api_gateway_integration_response" "api_gateway_root_options_200" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_rest_api.rest_api.root_resource_id
+  http_method = aws_api_gateway_method.api_gateway_root_options[0].http_method
+  status_code = aws_api_gateway_method_response.api_gateway_root_options_200[0].status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'${var.CORS_ALLOWED_ORIGINS}'"
+    "method.response.header.Access-Control-Allow-Methods" = "'${join(",", var.CORS_ALLOWED_METHODS)}'"
+    "method.response.header.Access-Control-Allow-Headers" = "'${join(",", var.CORS_ALLOWED_HEADERS)}'"
+  }
+  response_templates = {
+    "application/json" = ""
+  }
+  depends_on = [aws_api_gateway_integration.api_gateway_root_options]
+}
+
+# Recurso adicionado para CORS no proxy
+resource "aws_api_gateway_method" "api_gateway_proxy_options" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id     = aws_api_gateway_rest_api.rest_api.id
+  resource_id     = aws_api_gateway_resource.api_gateway_resource.id
+  http_method     = "OPTIONS"
+  authorization   = "NONE"
+  api_key_required = false
+}
+
+# Integração do recurso adicionado para CORS no proxy
+resource "aws_api_gateway_integration" "api_gateway_proxy_options" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.api_gateway_resource.id
+  http_method = aws_api_gateway_method.api_gateway_proxy_options[0].http_method
+  type        = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+# Recurso de resposta do recurso adicionado para CORS no proxy
+resource "aws_api_gateway_method_response" "api_gateway_proxy_options_200" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.api_gateway_resource.id
+  http_method = aws_api_gateway_method.api_gateway_proxy_options[0].http_method
+  status_code = "200"
+  response_models = {
+    "application/json" = "Empty"
+  }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+}
+
+# Integração do recurso de resposta
+resource "aws_api_gateway_integration_response" "api_gateway_proxy_options_200" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.api_gateway_resource.id
+  http_method = aws_api_gateway_method.api_gateway_proxy_options[0].http_method
+  status_code = aws_api_gateway_method_response.api_gateway_proxy_options_200[0].status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'${var.CORS_ALLOWED_ORIGINS}'"
+    "method.response.header.Access-Control-Allow-Methods" = "'${join(",", var.CORS_ALLOWED_METHODS)}'"
+    "method.response.header.Access-Control-Allow-Headers" = "'${join(",", var.CORS_ALLOWED_HEADERS)}'"
+  }
+  response_templates = {
+    "application/json" = ""
+  }
+  depends_on = [aws_api_gateway_integration.api_gateway_proxy_options]
+}
+
+# Resposta padrão para erros 4xx, usados para evitar erros de CORS em caso de erros 4xx
+resource "aws_api_gateway_gateway_response" "api_gateway_default_4xx" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
+  response_type = "DEFAULT_4XX"
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.CORS_ALLOWED_ORIGINS}'"
+    "gatewayresponse.header.Access-Control-Allow-Methods" = "'${join(",", var.CORS_ALLOWED_METHODS)}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'${join(",", var.CORS_ALLOWED_HEADERS)}'"
+  }
+}
+
+# Resposta padrão para erros 5xx, usados para evitar erros de CORS em caso de erros 5xx
+resource "aws_api_gateway_gateway_response" "api_gateway_default_5xx" {
+  count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
+  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
+  response_type = "DEFAULT_5XX"
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'${var.CORS_ALLOWED_ORIGINS}'"
+    "gatewayresponse.header.Access-Control-Allow-Methods" = "'${join(",", var.CORS_ALLOWED_METHODS)}'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'${join(",", var.CORS_ALLOWED_HEADERS)}'"
+  }
+}
+
 
 resource "aws_api_gateway_deployment" "api_gateway_deployment" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -118,7 +258,8 @@ resource "aws_lambda_function" "lambda_function" {
   package_type  = var.LAMBDA_CODE_PACKAGE_TYPE
   role          = aws_iam_role.lambda_iam_role.arn
   environment {
-    variables = var.ENVIRONMENT_VARIABLES
+    #variables = var.ENVIRONMENT_VARIABLES
+    variables = local.lambda_env
   }
   vpc_config {
     security_group_ids = var.SECURITY_GROUP_IDS

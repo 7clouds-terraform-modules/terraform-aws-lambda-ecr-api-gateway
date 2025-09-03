@@ -12,7 +12,7 @@ module "lambda_ecr_api_gateway" {
 
   # Optionals
   AWS_REGION = "us-west-2"
-  TAGS = { Enviromnet = "Example"
+  TAGS = { Environment = "Example"
     Terraform = true
   }
 

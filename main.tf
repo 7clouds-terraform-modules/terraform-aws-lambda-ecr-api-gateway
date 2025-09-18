@@ -7,7 +7,6 @@ locals {
       "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
     ], 
     coalesce(var.ATTACHED_POLICY_ARNS, []))
-    lambda_env = jsondecode(file("${path.module}/env.json"))
 }
 
 data "aws_caller_identity" "current_identity" {}
@@ -63,7 +62,6 @@ resource "aws_api_gateway_integration" "api_gateway_integration_root" {
    uri                     = "arn:aws:apigateway:${var.AWS_REGION != null ? var.AWS_REGION : data.aws_region.default_region.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${var.AWS_REGION != null ? var.AWS_REGION : data.aws_region.default_region.name}:${data.aws_caller_identity.current_identity.account_id}:function:$${stageVariables.FunctionName}/invocations"
 }
 
-# recurso adicionado para method que lida com CORS no / (root)
 resource "aws_api_gateway_method" "api_gateway_root_options" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id     = aws_api_gateway_rest_api.rest_api.id
@@ -73,7 +71,6 @@ resource "aws_api_gateway_method" "api_gateway_root_options" {
   api_key_required = false
 }
 
-# integration do recurso adicionado para CORS no / (root)
 resource "aws_api_gateway_integration" "api_gateway_root_options" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -85,7 +82,6 @@ resource "aws_api_gateway_integration" "api_gateway_root_options" {
   }
 }
 
-# recurso de resposta do recurso adicionado para CORS no / (root)
 resource "aws_api_gateway_method_response" "api_gateway_root_options_200" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -102,7 +98,6 @@ resource "aws_api_gateway_method_response" "api_gateway_root_options_200" {
   }
 }
 
-# Integração do recurso de resposta
 resource "aws_api_gateway_integration_response" "api_gateway_root_options_200" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -120,7 +115,6 @@ resource "aws_api_gateway_integration_response" "api_gateway_root_options_200" {
   depends_on = [aws_api_gateway_integration.api_gateway_root_options]
 }
 
-# Recurso adicionado para CORS no proxy
 resource "aws_api_gateway_method" "api_gateway_proxy_options" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id     = aws_api_gateway_rest_api.rest_api.id
@@ -130,7 +124,6 @@ resource "aws_api_gateway_method" "api_gateway_proxy_options" {
   api_key_required = false
 }
 
-# Integração do recurso adicionado para CORS no proxy
 resource "aws_api_gateway_integration" "api_gateway_proxy_options" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -142,7 +135,6 @@ resource "aws_api_gateway_integration" "api_gateway_proxy_options" {
   }
 }
 
-# Recurso de resposta do recurso adicionado para CORS no proxy
 resource "aws_api_gateway_method_response" "api_gateway_proxy_options_200" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -159,7 +151,6 @@ resource "aws_api_gateway_method_response" "api_gateway_proxy_options_200" {
   }
 }
 
-# Integração do recurso de resposta
 resource "aws_api_gateway_integration_response" "api_gateway_proxy_options_200" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
@@ -177,7 +168,6 @@ resource "aws_api_gateway_integration_response" "api_gateway_proxy_options_200" 
   depends_on = [aws_api_gateway_integration.api_gateway_proxy_options]
 }
 
-# Resposta padrão para erros 4xx, usados para evitar erros de CORS em caso de erros 4xx
 resource "aws_api_gateway_gateway_response" "api_gateway_default_4xx" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
@@ -189,7 +179,6 @@ resource "aws_api_gateway_gateway_response" "api_gateway_default_4xx" {
   }
 }
 
-# Resposta padrão para erros 5xx, usados para evitar erros de CORS em caso de erros 5xx
 resource "aws_api_gateway_gateway_response" "api_gateway_default_5xx" {
   count            = var.ENABLE_OPTIONS_INTEGRATION ? 1 : 0
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
@@ -257,9 +246,8 @@ resource "aws_lambda_function" "lambda_function" {
   image_uri     = "${data.aws_ecr_repository.lambda_ecr_repository.repository_url}@${data.aws_ecr_image.lambda_ecr_image.image_digest}"
   package_type  = var.LAMBDA_CODE_PACKAGE_TYPE
   role          = aws_iam_role.lambda_iam_role.arn
-  environment {
-    #variables = var.ENVIRONMENT_VARIABLES
-    variables = local.lambda_env
+  environment_variables = {
+    variables = var.ENVIRONMENT_VARIABLES
   }
   vpc_config {
     security_group_ids = var.SECURITY_GROUP_IDS

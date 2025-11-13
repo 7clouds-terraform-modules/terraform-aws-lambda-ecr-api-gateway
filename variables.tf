@@ -139,3 +139,27 @@ variable "LAMBDA_WARMUP_SCHEDULE_EXPRESSION" {
   type        = string
   default     = "rate(5 minutes)"
 }
+
+variable "CORS_ALLOWED_ORIGINS" {
+  type        = string
+  description = "Allowed origins in CORS policy, use '*' if you want all origins allowed"
+  default     = "*"
+}
+
+variable "CORS_ALLOWED_METHODS" {
+  type        = list(string)
+  description = "Allowed methods in CORS policy"
+  default     = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+}
+
+variable "CORS_ALLOWED_HEADERS" {
+  type        = list(string)
+  description = "Allowed headers in CORS policy, define all headers needed by your application front-end"
+  default     = ["*"]
+}
+
+variable "ENABLE_OPTIONS_INTEGRATION" {
+  type        = bool
+  description = "Enable creation of all CORS resources (root, proxy and gateway responses)."
+  default     = false
+}

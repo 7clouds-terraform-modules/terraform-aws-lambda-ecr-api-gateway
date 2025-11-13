@@ -2,19 +2,20 @@ module "lambda_ecr_api_gateway" {
   source = "../.."
 
   # Required
-  PROJECT_NAME                     = "NewModules"
+  PROJECT_NAME                     = "cors-proj-"
   API_GATEWAY_RESOURCE_PATH        = "{proxy+}"
   API_GATEWAY_METHOD_AUTHORIZATION = "NONE"
   API_GATEWAY_METHOD_HTTP_METHOD   = "ANY"
   ENVIRONMENT                      = "DEV"
-  ECR_REPOSITORY_NAME              = "lambda/newmodules-ecr"
+  ECR_REPOSITORY_NAME              = "cors-proj-lambda"
   ECR_IMAGE_TAG                    = "latest"
 
   # Optionals
-  AWS_REGION = "us-west-2"
-  TAGS = { Environment = "Example"
+  AWS_REGION = "us-east-1"
+  TAGS = { Project = "cors-proj"
     Terraform = true
   }
+  ENABLE_OPTIONS_INTEGRATION = true
 
   # Structural
   SECURITY_GROUP_IDS                  = ["YourSecurityGroupsID(s)Here"]
@@ -27,4 +28,7 @@ module "lambda_ecr_api_gateway" {
   ATTACHED_POLICY_ARNS                 = ["YourAttachedPolic(y/ies)Here"]
   API_GATEWAY_INTEGRATION_HTTP_METHOD = "POST"
   API_GATEWAY_INTEGRATION_INPUT_TYPE  = "AWS_PROXY"
+  CORS_ALLOWED_ORIGINS                = "*"
+  CORS_ALLOWED_METHODS                = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  CORS_ALLOWED_HEADERS                = ["Content-Type", "Authorization", "X-Requested-With", "limit", "orderby", "query"]
 }

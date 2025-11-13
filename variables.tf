@@ -161,5 +161,5 @@ variable "CORS_ALLOWED_HEADERS" {
 variable "ENABLE_OPTIONS_INTEGRATION" {
   type        = bool
   description = "Enable creation of all CORS resources (root, proxy and gateway responses)."
-  default     = true
+  default     = false
 }

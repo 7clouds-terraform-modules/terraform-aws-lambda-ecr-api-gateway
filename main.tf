@@ -246,7 +246,7 @@ resource "aws_lambda_function" "lambda_function" {
   image_uri     = "${data.aws_ecr_repository.lambda_ecr_repository.repository_url}@${data.aws_ecr_image.lambda_ecr_image.image_digest}"
   package_type  = var.LAMBDA_CODE_PACKAGE_TYPE
   role          = aws_iam_role.lambda_iam_role.arn
-  environment_variables = {
+  environment {
     variables = var.ENVIRONMENT_VARIABLES
   }
   vpc_config {

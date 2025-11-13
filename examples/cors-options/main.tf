@@ -17,7 +17,7 @@ module "lambda_ecr_api_gateway" {
   }
   ENABLE_OPTIONS_INTEGRATION = true
 
-  Structural
+  # Structural
   SECURITY_GROUP_IDS                  = ["YourSecurityGroupsID(s)Here"]
   SUBNET_IDS                          = ["YourSubnetsID(s)Here"]
   WARMUP_ENABLED                      = true
